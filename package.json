@@ -1,0 +1,49 @@
+{
+  "name": "transends_typescript",
+  "private": true,
+  "version": "0.2.0",
+  "main": "dist-electron/main.js",
+  "homepage": "./",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "build:all": "npm run build && electron-builder -mwl",
+    "build:mac": "npm run build && electron-builder --mac",
+    "build:mac:x64": "npm run build && electron-builder --mac --x64",
+    "build:mac:arm64": "npm run build && electron-builder --mac --arm64",
+    "build:mac:universal": "npm run build && electron-builder --mac --universal",
+    "build:win": "npm run build && electron-builder --win",
+    "build:win:x64": "npm run build && electron-builder --win --x64",
+    "build:win:ia32": "npm run build && electron-builder --win --ia32",
+    "build:win:arm64": "npm run build && electron-builder --win --arm64",
+    "build:linux": "npm run build && electron-builder --linux",
+    "build:linux:x64": "npm run build && electron-builder --linux --x64",
+    "build:linux:arm64": "npm run build && electron-builder --linux --arm64",
+    "build:linux:armv7l": "npm run build && electron-builder --linux --armv7l"
+  },
+  "dependencies": {
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.12.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^41.3.0",
+    "electron-builder": "^26.8.1",
+    "eslint": "^10.2.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.5.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.58.2",
+    "vite": "^8.0.10",
+    "vite-plugin-electron": "^0.29.1",
+    "vite-plugin-electron-renderer": "^0.14.6",
+    "wait-on": "^9.0.5"
+  }
+}
