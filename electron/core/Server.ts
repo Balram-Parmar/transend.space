@@ -3,16 +3,20 @@ import { IncomingMessage, ServerResponse } from 'http';
 import path from 'path';
 import fsPromises from 'fs/promises';
 import fs from 'fs';
-import { createReadStream } from 'fs'; // Imported createReadStream here
+import { createReadStream } from 'fs';
 import crypto from 'crypto';
 
-// Assuming these are imported from your types file
-import { constructorOptions, getCallback, fileInfo } from '../utils/types';
+import {
+  constructorOptions,
+  getCallback,
+  fileInfo,
+  sendMethods,
+  sendCallback,
+} from '../utils/types';
 
 class Server {
   private port: number;
   private instance: https.Server;
-  // Use lowercase 'string' for TypeScript primitives, not 'String' object wrappers
   private getRoutes: Map<string, getCallback>;
   private idToFilePath: Map<string, fileInfo & { filePath: string }>;
 
@@ -22,7 +26,7 @@ class Server {
     this.idToFilePath = new Map();
     const option = { key: fs.readFileSync(keyPath), cert: fs.readFileSync(certPath) };
     this.instance = https.createServer(option, (req: IncomingMessage, res: ServerResponse) => {
-      if ((req.method === 'GET' || req.method === 'HEAD') && req.url?.startsWith('/download/')) {
+      if (req.method === 'GET' && req.url?.startsWith('/download/')) {
         const id = req.url.slice(10);
         console.log(`Received ${req.method} request for file : ` + id);
 
@@ -82,6 +86,41 @@ class Server {
     this.getRoutes.set(pathString, cb);
   }
 
+  public req(
+    method: sendMethods,
+    url: string,
+    headers: Record<string, string>,
+    res: sendCallback,
+    body?: string | Buffer,
+  ) {
+    if (!URL.canParse(url)) {
+      console.log('invalid Url to send request to ' + url);
+      throw new Error('failed to parse the url ');
+    }
+
+    const urlObj = new URL(url);
+
+    const options = {
+      method: method,
+      hostname: urlObj.hostname,
+      port: urlObj.port || 443,
+      path: urlObj.pathname + urlObj.search,
+      headers: headers,
+      rejectUnauthorized: false,
+    };
+
+    const ClientRequest = https.request(options, res);
+
+    ClientRequest.on('error', (err) => {
+      console.error('Request failed:', err.message);
+    });
+
+    if (body) {
+      ClientRequest.write(body);
+    }
+    ClientRequest.end();
+  }
+
   private handleFileDownloadRequest(
     fileData: fileInfo & { filePath: string },
     req: IncomingMessage,
@@ -93,9 +132,8 @@ class Server {
       const filePath = fileData.filePath;
       const range = req.headers.range;
 
-      const isHeadRequest = req.method === 'HEAD';
-
       if (range) {
+        //check if range header is presend
         const parts = range.replace(/bytes=/, '').split('-');
         const start = parseInt(parts[0], 10);
         const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
@@ -117,23 +155,16 @@ class Server {
           'Content-Disposition': `attachment; filename="${fileData.name}"; filename*=UTF-8''${safeFileName}`,
         });
 
-        if (isHeadRequest) {
-          return res.end();
-        }
-
         const fileStream = createReadStream(filePath, { start, end });
         fileStream.pipe(res);
       } else {
+        //else send full file at once
         res.writeHead(200, {
           'Content-Length': fileSize,
           'Content-Type': 'application/octet-stream',
           'Accept-Ranges': 'bytes',
           'Content-Disposition': `attachment; filename="${fileData.name}"; filename*=UTF-8''${safeFileName}`,
         });
-
-        if (isHeadRequest) {
-          return res.end();
-        }
 
         const fileStream = createReadStream(filePath);
         fileStream.pipe(res);
