@@ -1,0 +1,15 @@
+.wrapper {
+  /* Use the prop value, or fall back to your cyan-975 */
+  background-color: var(--local-bg, var(--cyan-975));
+  padding: 1rem;
+
+  border: 1px solid oklch(from var(--cyan-400) l c h / 0.46);
+  border-radius: 1rem;
+
+  transition: background-color 0.3s ease;
+}
+
+.wrapper:hover {
+  /* Now you can easily interact with the prop-driven color */
+  box-shadow: var(--glow-200);
+}

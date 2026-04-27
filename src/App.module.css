@@ -1,0 +1,133 @@
+:root {
+  /* --- Base Hue: Cyan --- */
+  --cyan-500: oklch(89.47% 0.198 195.4);
+
+  /* Tints */
+  --cyan-400: oklch(91.53% 0.158 195.4);
+  --cyan-300: oklch(93.6% 0.119 195.4);
+  --cyan-200: oklch(95.34% 0.086 195.4);
+  --cyan-150: oklch(96.7% 0.062 195.4);
+  --cyan-100: oklch(98.11% 0.038 195.4);
+  --cyan-75: oklch(98.81% 0.025 195.4);
+  --cyan-50: oklch(99.28% 0.015 195.4);
+  --cyan-25: oklch(99.64% 0.008 195.4);
+  --cyan-10: oklch(99.88% 0.003 195.4);
+
+  /* Shades */
+  --cyan-600: oklch(81.1% 0.18 195.4);
+  --cyan-700: oklch(71.04% 0.158 195.4);
+  --cyan-800: oklch(59.98% 0.133 195.4);
+  --cyan-850: oklch(50.41% 0.112 195.4);
+  --cyan-900: oklch(40.85% 0.091 195.4);
+  --cyan-925: oklch(29.13% 0.065 195.4);
+  --cyan-950: oklch(19.34% 0.043 195.4);
+  --cyan-975: oklch(10.16% 0.022 195.4);
+  --cyan-990: oklch(2.13% 0.005 195.4);
+
+  /* --- Glow Intensities --- */
+
+  /* Level 1: Subtle - Good for soft borders or indicators */
+  --glow-100: 0 0 10px oklch(from var(--cyan-400) l c h / 0.2);
+
+  /* Level 2: Standard - Use for active buttons or focused states */
+  --glow-200:
+    0 0 15px oklch(from var(--cyan-400) l c h / 0.3),
+    0 0 5px oklch(from var(--cyan-400) l c h / 0.2);
+
+  /* Level 3: Vivid - High visibility / Neon effect */
+  --glow-300:
+    0 0 5px oklch(from var(--cyan-100) l c h / 0.8),
+    0 0 20px oklch(from var(--cyan-400) l c h / 0.5),
+    0 0 40px oklch(from var(--cyan-600) l c h / 0.2);
+
+  /* Level 4: Hyper - Extreme bloom for status alerts */
+  --glow-400:
+    0 0 10px oklch(from var(--cyan-100) l c h / 1),
+    0 0 30px oklch(from var(--cyan-500) l c h / 0.7),
+    0 0 70px oklch(from var(--cyan-700) l c h / 0.4);
+}
+.header {
+  margin: 0.4rem 1rem;
+
+  border-radius: 5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: var(--cyan-975);
+
+  border: 1px solid oklch(from var(--cyan-200) L C H / 0.4);
+}
+
+.branding {
+  gap: 0.2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.branding p {
+  color: var(--cyan-500);
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+}
+
+.navLink {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  gap: 0.2rem;
+  color: var(--cyan-500);
+  font-family: 'Inter';
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.41rem;
+  font-weight: 700;
+  transition: all 0.2s ease-in-out; /* Smoothly animate the glow */
+  cursor: pointer;
+}
+
+.navLink:hover {
+  /* 1. Brighten the background */
+  background-color: var(--cyan-400); /* Using 400 instead of 500 for a "brighten" effect */
+  color: var(--cyan-975);
+
+  /* 2. Glow effect using OKLCH relative syntax */
+  box-shadow:
+    0 0 15px oklch(from var(--cyan-400) l c h / 0.6),
+    0 0 30px oklch(from var(--cyan-500) l c h / 0.2);
+
+  transform: translateY(-1px);
+}
+
+.navLink:hover img {
+  filter: brightness(0) saturate(100%) invert(6%) sepia(18%) saturate(1074%) hue-rotate(136deg)
+    brightness(96%) contrast(106%);
+  transition: all 0.2s ease-in-out;
+}
+
+.navLink::after {
+  content: '';
+  opacity: 0;
+  position: absolute;
+  height: 1px;
+  border-radius: 30px;
+  width: 70%;
+  top: 85%;
+  left: 18%;
+
+  background-color: var(--cyan-400);
+}
+
+/* Target the underline when the active class is applied */
+.active::after {
+  opacity: 1;
+}
+
+/* Optional: Keep the text bright to match the hover effect when active */
+.active {
+  color: var(--cyan-400);
+}

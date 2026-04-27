@@ -1,0 +1,135 @@
+.mainContent {
+  margin: 0 4rem;
+  margin-top: 4rem;
+  height: 100%;
+  /* border: 1px solid pink; */
+}
+
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.scanContainer {
+  display: flex;
+  gap: 1rem;
+}
+.iconBorder {
+  border: 2px solid oklch(from var(--cyan-400) l c h / 0.3);
+  padding: 5px;
+  border-radius: 0.75rem;
+  background-color: oklch(from var(--cyan-975) l c h / 0.9);
+}
+.iconBackground {
+  position: relative;
+  background-color: oklch(from var(--cyan-400) L C H / 0.36);
+  padding: 0.4rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: inherit;
+  border: 1px solid oklch(from var(--cyan-400) L C H / 0.5);
+  box-shadow: var(--glow-200);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: var(--cyan-25);
+}
+
+.text p {
+  color: oklch(from var(--cyan-25) calc(L - 0.28) C H / 0.8);
+}
+
+.button img {
+  width: 2rem;
+  height: 2rem;
+}
+.button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  background: transparent; /* Changed from none for better transition */
+  border: 2px solid oklch(from var(--cyan-400) L C H);
+  border-radius: 2rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.button span {
+  font-family: 'Inter';
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--cyan-25);
+  transition: color 0.2s ease-in-out;
+}
+
+.button img {
+  width: 1.5rem;
+  height: auto;
+  transition: filter 0.2s ease-in-out;
+}
+
+/* Hover States */
+.button:hover {
+  background-color: var(--cyan-400);
+
+  box-shadow: 0 0 20px oklch(from var(--cyan-400) L C H / 0.4);
+}
+
+.button:hover span {
+  /* Change text to dark cyan/black for contrast against bright background */
+  color: var(--cyan-990);
+}
+
+.button:hover img {
+  /* This filter turns a colored/white icon into a very dark grey/black */
+  filter: brightness(0) saturate(100%) invert(6%) sepia(18%) saturate(1074%) hue-rotate(136deg)
+    brightness(96%) contrast(106%);
+}
+.deviceGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  gap: 5rem;
+}
+.deviceContainer {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 2rem;
+  color: var(--cyan-25);
+}
+
+.imageContainer {
+  display: inline-flex;
+  padding: 0.6rem;
+
+  background-color: oklch(from var(--cyan-400) L C H / 0.36);
+  box-shadow: var(--glow-100);
+  border: 1px solid var(--cyan-400);
+  border-radius: 1.3rem;
+}
+.imageContainer img {
+  width: 4rem;
+}
+
+.information h1 {
+  font-size: 1.9rem;
+}
+.information p {
+  color: oklch(from var(--cyan-25) calc(L - 0.28) C H / 0.8);
+  font-family: monospace;
+}

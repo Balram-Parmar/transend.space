@@ -11,14 +11,10 @@ class DiscoveryService extends EventEmitter {
   private discoveryPort: number = 6321;
   constructor({ httpPort }: DiscoveryServiceOptions) {
     super();
-    //initialise variables and settings
+
     this.httpPort = httpPort;
     this.Devices = new Map();
     this.instance = dgram.createSocket({ type: 'udp4' });
-    //use multicast if mobile devices support it
-    // this.instance.addMembership('239.69.69.69');
-    // this.instance.setMulticastTTL(2);
-    // this.instance.setMulticastLoopback(false);
 
     this.instance.on('error', (err) => {
       console.error(`this.instance error:\n${err.stack}`);
