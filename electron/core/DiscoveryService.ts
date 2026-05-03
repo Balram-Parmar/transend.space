@@ -2,7 +2,13 @@ import dgram, { Socket } from 'dgram';
 import EventEmitter from 'events';
 import { ActiveInterfaces, DeviceInfo, DiscoveryServiceOptions } from '../utils/types';
 import os from 'os';
+/*
 
+Events 
+device:found => DeviceInfo type
+device:lost => DeviceInfo
+
+*/
 class DiscoveryService extends EventEmitter {
   private instance: Socket;
   private interfaces: ActiveInterfaces[] = [];
@@ -31,7 +37,7 @@ class DiscoveryService extends EventEmitter {
       }
       const data: DeviceInfo = JSON.parse(msg.toString());
 
-      console.log(`UDP Socket got a message : from ${rinfo.address} as ${JSON.stringify(data)}`);
+      // console.log(`UDP Socket got a message : from ${rinfo.address} as ${JSON.stringify(data)}`);
       //save device in map or update last seen if already avaliable
       if (!this.Devices.has(rinfo.address)) {
         this.emit('device:found', data);
@@ -92,6 +98,7 @@ class DiscoveryService extends EventEmitter {
         if (err) {
           console.error(`Error sending broadcast on ${iface.address}:`, err);
         }
+        // console.log(`sending signal on interface ${iface.address}`);
       });
     }
   }
@@ -135,7 +142,7 @@ class DiscoveryService extends EventEmitter {
   private handleOfflineDevice() {
     setInterval(() => {
       for (const device of this.Devices.entries()) {
-        if (Date.now() - device[1].lastSeen > 1000) {
+        if (Date.now() - device[1].lastSeen > 1000000000) {
           this.emit('device:lost', device[1]);
           console.log(`lost Device : ${JSON.stringify(device[1])}`);
           this.Devices.delete(device[1].address);

@@ -81,32 +81,18 @@
   align-items: center;
   position: relative;
   gap: 0.2rem;
-  color: var(--cyan-500);
+  color: var(--cyan-25);
   font-family: 'Inter';
   padding: 0.5rem 1.5rem;
   border-radius: 0.41rem;
-  font-weight: 700;
+  font-weight: 200;
   transition: all 0.2s ease-in-out; /* Smoothly animate the glow */
   cursor: pointer;
 }
 
 .navLink:hover {
-  /* 1. Brighten the background */
-  background-color: var(--cyan-400); /* Using 400 instead of 500 for a "brighten" effect */
-  color: var(--cyan-975);
-
-  /* 2. Glow effect using OKLCH relative syntax */
-  box-shadow:
-    0 0 15px oklch(from var(--cyan-400) l c h / 0.6),
-    0 0 30px oklch(from var(--cyan-500) l c h / 0.2);
-
+  color: var(--cyan-400);
   transform: translateY(-1px);
-}
-
-.navLink:hover img {
-  filter: brightness(0) saturate(100%) invert(6%) sepia(18%) saturate(1074%) hue-rotate(136deg)
-    brightness(96%) contrast(106%);
-  transition: all 0.2s ease-in-out;
 }
 
 .navLink::after {

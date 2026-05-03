@@ -18,14 +18,19 @@ class Server {
   private port: number;
   private instance: https.Server;
   private getRoutes: Map<string, getCallback>;
+  private postRoutes: Map<string, getCallback>; // 1. Added postRoutes Map
   private idToFilePath: Map<string, fileInfo & { filePath: string }>;
 
-  constructor({ port, keyPath, certPath }: constructorOptions) {
+  constructor({ port, keyString, certString }: constructorOptions) {
     this.port = port;
     this.getRoutes = new Map();
+    this.postRoutes = new Map(); // 2. Initialize postRoutes
     this.idToFilePath = new Map();
-    const option = { key: fs.readFileSync(keyPath), cert: fs.readFileSync(certPath) };
+
+    const option = { key: keyString, cert: certString };
+
     this.instance = https.createServer(option, (req: IncomingMessage, res: ServerResponse) => {
+      // Handle File Downloads
       if (req.method === 'GET' && req.url?.startsWith('/download/')) {
         const id = req.url.slice(10);
         console.log(`Received ${req.method} request for file : ` + id);
@@ -38,15 +43,36 @@ class Server {
 
         const fileData = this.idToFilePath.get(id)!;
         this.handleFileDownloadRequest(fileData, req, res);
-      } else if (req.method === 'GET') {
+      }
+      // Handle GET Routes
+      else if (req.method === 'GET') {
         const cb = this.getRoutes.get(req.url as string);
-        if (cb) cb(req, res);
+        if (cb) {
+          cb(req, res);
+        } else {
+          this.sendNotFound(res);
+        }
+      }
+      // 3. Handle POST Routes
+      else if (req.method === 'POST') {
+        const cb = this.postRoutes.get(req.url as string);
+        if (cb) {
+          cb(req, res);
+        } else {
+          this.sendNotFound(res);
+        }
       }
     });
 
     this.instance.listen(this.port, '0.0.0.0', () => {
       console.log(`server started at https://localhost:${this.port}`);
     });
+  }
+
+  // Optional Helper for 404s to keep code DRY
+  private sendNotFound(res: ServerResponse) {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end("sorry but it won't work if you are trying to hack it");
   }
 
   private isValidPath(pathString: string) {
@@ -58,7 +84,6 @@ class Server {
     }
   }
 
-  // Removed the explicit Promise constructor anti-pattern
   public async getFileInfo(filePath: string): Promise<fileInfo> {
     const data = await fsPromises.stat(filePath);
 
@@ -84,6 +109,11 @@ class Server {
   public get(pathString: string, cb: getCallback) {
     if (!this.isValidPath(pathString)) throw new Error('Not a valid path: ' + pathString);
     this.getRoutes.set(pathString, cb);
+  }
+
+  public post(pathString: string, cb: getCallback) {
+    if (!this.isValidPath(pathString)) throw new Error('Not a valid path: ' + pathString);
+    this.postRoutes.set(pathString, cb);
   }
 
   public req(
@@ -133,7 +163,6 @@ class Server {
       const range = req.headers.range;
 
       if (range) {
-        //check if range header is presend
         const parts = range.replace(/bytes=/, '').split('-');
         const start = parseInt(parts[0], 10);
         const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
@@ -158,7 +187,6 @@ class Server {
         const fileStream = createReadStream(filePath, { start, end });
         fileStream.pipe(res);
       } else {
-        //else send full file at once
         res.writeHead(200, {
           'Content-Length': fileSize,
           'Content-Type': 'application/octet-stream',

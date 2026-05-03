@@ -103,7 +103,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
 
-  gap: 5rem;
+  gap: 1rem;
 }
 .deviceContainer {
   display: flex;
@@ -111,8 +111,16 @@
   align-items: center;
   gap: 2rem;
   color: var(--cyan-25);
+  background-color: oklch(from var(--cyan-975) L C H / 0.8);
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1px solid oklch(from var(--cyan-400) calc(L) C H / 0.4);
 }
 
+.deviceContainer:hover {
+  box-shadow: var(--glow-200);
+  cursor: pointer;
+}
 .imageContainer {
   display: inline-flex;
   padding: 0.6rem;
@@ -127,7 +135,7 @@
 }
 
 .information h1 {
-  font-size: 1.9rem;
+  font-size: 1.2rem;
 }
 .information p {
   color: oklch(from var(--cyan-25) calc(L - 0.28) C H / 0.8);

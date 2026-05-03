@@ -2,8 +2,8 @@ import { ClientRequest, IncomingMessage, ServerResponse } from 'http';
 
 type constructorOptions = {
   port: number;
-  keyPath: string;
-  certPath: string;
+  keyString: string;
+  certString: string;
 };
 
 type getCallback = (req: IncomingMessage, res: ServerResponse) => void;

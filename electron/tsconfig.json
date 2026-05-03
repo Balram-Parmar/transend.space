@@ -9,7 +9,7 @@
     "esModuleInterop": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "types": ["electron", "node"]
+    "types": ["electron", "node", "node-forge"]
   },
   "include": ["**/*.ts"]
 }

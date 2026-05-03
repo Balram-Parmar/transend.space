@@ -18,14 +18,12 @@ function App(): JSX.Element {
         </Link>
 
         <div className={styles.pages}>
-          {/* 2. Replace Link with NavLink for your navigation items */}
           <NavLink
             to="/transfer"
             className={({ isActive }) =>
               isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
             }
           >
-            <img src={transferIcon} alt="Transfer Icon" />
             Transfer
           </NavLink>
         </div>
