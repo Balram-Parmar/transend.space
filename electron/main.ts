@@ -4,7 +4,9 @@ import DiscoveryService from './core/DiscoveryService';
 import Server from './core/Server';
 import forge from 'node-forge';
 import getPort from 'get-port';
-import { DeviceInfo } from './utils/types';
+import { DeviceInfo, PeerDownloadRequest } from './utils/types';
+import { IncomingMessage } from 'node:http';
+import { json } from 'node:stream/consumers';
 
 process.env.DIST = path.join(__dirname, '../dist');
 process.env.VITE_PUBLIC = app.isPackaged
@@ -14,6 +16,8 @@ process.env.VITE_PUBLIC = app.isPackaged
 // 1. Declare the variable here, but do NOT create the window yet.
 let mainWindow: BrowserWindow;
 let winIsReady: Promise<BrowserWindow>;
+let server: Server;
+let service: DiscoveryService;
 /*
 -----------------------------------------------------Manage App-----------------------------------------------
 */
@@ -43,9 +47,9 @@ app.on('activate', () => {
 (async () => {
   const httpPort = await getPort();
   const ssl = generateLocalSSLCert();
-  console.log('generated ssl ' + ssl.key + '\n' + ssl.cert);
-  const server = new Server({ port: httpPort, keyString: ssl.key, certString: ssl.cert });
-  const service = new DiscoveryService({ httpPort });
+  console.log('success fully generated ssl certificate');
+  server = new Server({ port: httpPort, keyString: ssl.key, certString: ssl.cert });
+  service = new DiscoveryService({ httpPort });
   service.on('device:found', async (device: DeviceInfo) => {
     (await winIsReady).webContents.send('device:found', device);
     console.log('device found in (main.ts)' + JSON.stringify(device));
@@ -55,20 +59,66 @@ app.on('activate', () => {
 /*
 ----------------------------------------------------- Handle Frontend Invokes -----------------------------------------------
 */
-ipcMain.handle('select-file', async () => {
+
+ipcMain.handle('select-file', async (event, device: DeviceInfo): Promise<PeerDownloadRequest> => {
   const filePath = await dialog.showOpenDialog(await winIsReady, {
     title: 'i am test title',
     properties: ['openFile'],
   });
+
   console.log('file path in main ' + filePath.filePaths);
-  if (filePath) {
-    console.log('i am not cancalled');
-    return { filePath: filePath.filePaths[0], cancalled: false };
-  } else {
-    console.log('i am  cancalled');
-    return { filePath: '', cancalled: true };
+
+  // 1. Return the new interface structure if the user cancels the dialog or selects nothing
+  if (filePath.canceled || !filePath.filePaths.length) {
+    return { isWaiting: false, cancelled: true, fileInfo: null };
   }
+
+  const data = await server.getFileInfo(filePath.filePaths[0]);
+
+  // 2. Type the Promise with your new interface
+  const finalResponse = await new Promise<PeerDownloadRequest>((resolve, reject) => {
+    let response: Buffer[] = [];
+
+    function responseHandler(res: IncomingMessage) {
+      res.on('data', (chunk) => {
+        response.push(chunk);
+      });
+
+      res.on('end', () => {
+        try {
+          const res = JSON.parse(Buffer.concat(response).toString());
+          console.log(res);
+          resolve({ ...res, fileInfo: data });
+        } catch (e) {
+          console.error('Failed to parse JSON from peer:', e);
+          // If the peer sends invalid data, safely default to a cancelled/failed state
+          resolve({ isWaiting: false, cancelled: true, fileInfo: null });
+        }
+      });
+
+      res.on('error', (err) => {
+        reject(err);
+      });
+    }
+
+    server.req({
+      method: 'POST',
+      url: `https://${device.address}:${device.httpPort}/downloadRequest`,
+      res: (res) => {
+        responseHandler(res);
+      },
+      body: JSON.stringify(data),
+    });
+  });
+
+  // This will now return the correctly typed PeerDownloadRequest object
+  return finalResponse;
 });
+
+ipcMain.handle('refresh', (event) => {
+  return service.getAllDevices();
+});
+
 /*
 ----------------------------------------------------- Util Functions -----------------------------------------------
 */

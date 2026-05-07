@@ -1,12 +1,13 @@
 .mainContent {
+  position: relative;
   margin: 0 4rem;
   margin-top: 4rem;
-  height: 100%;
+  height: calc(100% - 4rem);
   /* border: 1px solid pink; */
 }
 
 .container {
-  height: 100%;
+  /* height: 100%; */
   display: flex;
   flex-direction: column;
   gap: 4rem;
@@ -29,7 +30,6 @@
   background-color: oklch(from var(--cyan-975) l c h / 0.9);
 }
 .iconBackground {
-  position: relative;
   background-color: oklch(from var(--cyan-400) L C H / 0.36);
   padding: 0.4rem;
   display: flex;
@@ -140,4 +140,266 @@
 .information p {
   color: oklch(from var(--cyan-25) calc(L - 0.28) C H / 0.8);
   font-family: monospace;
+}
+
+/* =========================================
+   OVERLAY & CARD BASE
+   ========================================= */
+.popupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(10, 15, 25, 0.8);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.acceptCard {
+  background-color: oklch(from var(--cyan-975) l c h / 0.9); /* Very dark blue/grey */
+  border: 1px solid oklch(from var(--cyan-400) L C H / 0.36); /* Subtle teal border */
+  width: 90%;
+  max-width: 480px;
+  border-radius: 12px;
+  box-shadow: var(--glow-100);
+  display: flex;
+  flex-direction: column;
+  color: white;
+  overflow: hidden;
+  padding: 2rem 1rem;
+  animation: popIn 0.2s ease-out forwards;
+}
+
+/* =========================================
+   SENDER ICON
+   ========================================= */
+.senderIconWrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.senderIconContainer {
+  width: 100px;
+  height: 100px;
+  background-color: #0d2127;
+  border: 2px solid #00e5ff; /* Neon cyan border */
+  border-radius: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 8px 16px rgba(0, 229, 255, 0.1);
+}
+
+.senderIconContainer img {
+  width: 70px;
+  height: auto;
+  object-fit: contain;
+}
+
+/* =========================================
+   TYPOGRAPHY
+   ========================================= */
+.requestTitle {
+  color: #00e5ff; /* Neon cyan text */
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin: 24px 0;
+}
+
+/* =========================================
+   FILE LIST
+   ========================================= */
+.fileListContainer {
+  padding: 0 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.fileItem {
+  background-color: #162b32; /* Slightly lighter inner card */
+  border: 1px solid #1f404a;
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Dummy File Icons */
+.fileIcon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  width: 40px;
+  height: 48px;
+  color: white;
+  font-size: 0.5rem;
+  font-weight: bold;
+}
+
+.fileIcon svg {
+  width: 20px;
+  height: 20px;
+  margin-bottom: 2px;
+}
+
+.videoIcon {
+  background-color: #2196f3;
+} /* Blue for video */
+.imgIcon {
+  background-color: #03a9f4;
+} /* Light blue for image */
+
+.fileDetails {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.fileName {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+
+.fileSize {
+  color: #8c9ea6;
+  font-size: 0.8rem;
+}
+
+/* =========================================
+   BOTTOM ACTIONS (BUTTONS)
+   ========================================= */
+.actionArea {
+  background-color: #0a0e14; /* Darker footer */
+  padding: 24px 32px;
+  display: flex;
+  gap: 16px;
+  border-top: 1px solid #1a3c40;
+}
+
+.actionArea button {
+  flex: 1;
+  padding: 12px 0;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.rejectBtn {
+  background-color: transparent;
+  color: #00e5ff;
+  border: 1px solid #00e5ff;
+}
+
+.rejectBtn:hover {
+  background-color: rgba(0, 229, 255, 0.1);
+}
+
+.acceptBtn {
+  background-color: #00e5ff;
+  color: #000000;
+  border: none;
+}
+
+.acceptBtn:hover {
+  background-color: #00b3cc;
+}
+
+/* =========================================
+   ANIMATION
+   ========================================= */
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.cardLogo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.cardLogo h1 {
+  color: oklch(from var(--cyan-400) L C H / 0.8);
+  font-size: 1rem;
+  font-family: 'Inter';
+}
+
+.loadingContainer {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+
+  /* background-color: rebeccapurple; */
+}
+.loadingContainer img {
+  height: 5rem;
+}
+/* =========================================
+   MESSAGE 
+   ========================================= */
+.messageContainer {
+  position: absolute;
+  background-color: oklch(from var(--cyan-975) L C H / 0.8);
+  bottom: 10%;
+  left: 0;
+  width: 100%;
+
+  height: 5rem;
+  padding: 2rem 4rem;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  border: 1px solid oklch(from var(--cyan-400) L C H / 0.4);
+  border-radius: 1rem;
+
+  /* Add the animation here */
+  animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.messageContainer span {
+  font-family: 'Inter';
+  font-weight: 400;
+  font-size: 1.5rem;
+  color: oklch(from var(--cyan-400) L C H / 0.8);
+}
+
+/* Define the keyframes */
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

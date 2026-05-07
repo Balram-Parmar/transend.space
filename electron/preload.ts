@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { DeviceInfo } from './utils/types';
+import { DeviceInfo, PeerDownloadRequest } from './utils/types';
+import { data } from 'react-router-dom';
 
 // Expose protected methods that allow the renderer process to use IPC
 contextBridge.exposeInMainWorld('api', {
@@ -8,7 +9,10 @@ contextBridge.exposeInMainWorld('api', {
       cb(device);
     });
   },
-  getSelectedFilePath: (): Promise<{ filePath: string; cancalled: boolean }> => {
-    return ipcRenderer.invoke('select-file');
+  sendDownloadRequest: (device: DeviceInfo): Promise<PeerDownloadRequest> => {
+    return ipcRenderer.invoke('select-file', device);
+  },
+  getAllDevices: () => {
+    return ipcRenderer.invoke('refresh');
   },
 });

@@ -35,13 +35,30 @@ type ActiveInterfaces = {
   address: string;
   netmask: string;
 };
+
+interface ReqOptions {
+  method: sendMethods;
+  url: string;
+  res: sendCallback;
+  headers?: Record<string, string>;
+  body?: string | Buffer;
+}
+interface PeerDownloadRequest {
+  isWaiting: boolean;
+  cancelled: boolean;
+  fileInfo: fileInfo | null;
+}
+type ProgressData = {
+  totalDownloadedBytes: number;
+};
 export type {
   constructorOptions,
   getCallback,
   fileInfo,
-  sendMethods,
-  sendCallback,
+  ProgressData,
   DeviceInfo,
+  PeerDownloadRequest,
   DiscoveryServiceOptions,
   ActiveInterfaces,
+  ReqOptions,
 };

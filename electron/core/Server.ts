@@ -10,8 +10,8 @@ import {
   constructorOptions,
   getCallback,
   fileInfo,
-  sendMethods,
-  sendCallback,
+  ReqOptions,
+  ProgressData,
 } from '../utils/types';
 
 class Server {
@@ -68,7 +68,7 @@ class Server {
       console.log(`server started at https://localhost:${this.port}`);
     });
   }
-
+  private checkProgress() {}
   // Optional Helper for 404s to keep code DRY
   private sendNotFound(res: ServerResponse) {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
@@ -116,13 +116,7 @@ class Server {
     this.postRoutes.set(pathString, cb);
   }
 
-  public req(
-    method: sendMethods,
-    url: string,
-    headers: Record<string, string>,
-    res: sendCallback,
-    body?: string | Buffer,
-  ) {
+  public req({ method, url, res, headers, body }: ReqOptions) {
     if (!URL.canParse(url)) {
       console.log('invalid Url to send request to ' + url);
       throw new Error('failed to parse the url ');

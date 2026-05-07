@@ -1,0 +1,165 @@
+.container {
+  height: calc(100% - 5rem);
+  padding: 4rem 4rem;
+}
+
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  height: 100%;
+}
+
+.fileTransferContainer {
+  background-color: oklch(from var(--cyan-975) L C H / 0.8);
+  padding: 1rem;
+  border-radius: 1rem;
+  font-family: 'Inter';
+  border: 1px solid oklch(from var(--cyan-400) calc(L) C H / 0.4);
+  color: rgb(238, 233, 233);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  gap: 1rem;
+}
+.file {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+.imageContainer {
+  display: flex;
+  justify-content: center;
+
+  align-items: center;
+}
+
+.imageContainer img {
+  width: 2rem;
+}
+
+.fileInfo {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.fileMeta {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.fileMeta h1 {
+  font-weight: 400;
+  font-size: 1rem;
+}
+
+.fileMeta span {
+  background-color: oklch(from var(--cyan-400) L C H / 0.36);
+  padding: 0.1rem 0.2rem;
+  border-radius: inherit;
+  border: 1px solid oklch(from var(--cyan-400) L C H / 0.5);
+  box-shadow: var(--glow-200);
+  color: var(--cyan-400);
+  font-size: 0.7rem;
+}
+
+.cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+
+  background-color: #ff4d4f; /* A softer, more modern red */
+  color: white;
+  font-family: sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+
+  border-radius: 50%; /* Makes it a perfect circle */
+
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
+}
+
+.cancel:hover {
+  background-color: #ff7875;
+  transform: scale(1.1);
+}
+
+.cancel:active {
+  background-color: #d9363e;
+  transform: scale(0.95);
+}
+.progressBarContainer {
+  width: 100%;
+  display: flex;
+  gap: 0.2rem;
+  flex-direction: column;
+}
+.status {
+  font-size: 0.8rem;
+  display: flex;
+  justify-content: space-between;
+}
+.progressBar {
+  width: 100%;
+
+  height: 0.5rem;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  overflow: hidden;
+}
+
+.progressBar .progressFill {
+  height: 100%;
+  background-color: oklch(from var(--cyan-600) L C H);
+  background-image: oklch(from var(--cyan-600) L C H);
+  transition: width 0.4s ease-in-out;
+}
+
+.line {
+  width: 100%;
+  height: 1px;
+  background-color: #3c3c3cc7; /* A soft, neutral gray */
+  margin: 0 auto; /* Adds spacing above and below the line */
+}
+.speedContainer {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+.speed,
+.eta {
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-end;
+  gap: 0.2rem;
+  color: oklch(from var(--cyan-400) L C H);
+}
+.speed {
+  align-items: flex-start;
+}
+
+.text {
+  font-weight: 400;
+  font-size: small;
+  color: rgb(148, 148, 148);
+  font-family: 'Inter';
+}
+
+.temp {
+  color: wheat;
+  font-size: 1rem;
+}

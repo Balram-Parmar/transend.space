@@ -138,6 +138,9 @@ class DiscoveryService extends EventEmitter {
 
     return activeInterfaces;
   }
+  public getAllDevices() {
+    return Array.from(this.Devices.values());
+  }
 
   private handleOfflineDevice() {
     setInterval(() => {
