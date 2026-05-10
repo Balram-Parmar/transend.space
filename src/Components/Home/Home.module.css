@@ -141,7 +141,6 @@
   color: oklch(from var(--cyan-25) calc(L - 0.28) C H / 0.8);
   font-family: monospace;
 }
-
 /* =========================================
    OVERLAY & CARD BASE
    ========================================= */
@@ -151,8 +150,8 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(10, 15, 25, 0.8);
-  backdrop-filter: blur(8px);
+  background-color: rgba(10, 15, 25, 0.85);
+  backdrop-filter: blur(12px); /* Stronger blur for better focus */
   z-index: 9999;
   display: flex;
   justify-content: center;
@@ -160,18 +159,31 @@
 }
 
 .acceptCard {
-  background-color: oklch(from var(--cyan-975) l c h / 0.9); /* Very dark blue/grey */
-  border: 1px solid oklch(from var(--cyan-400) L C H / 0.36); /* Subtle teal border */
+  background-color: oklch(from var(--cyan-975) l c h / 0.95);
+  border: 1px solid oklch(from var(--cyan-400) L C H / 0.36);
   width: 90%;
-  max-width: 480px;
-  border-radius: 12px;
-  box-shadow: var(--glow-100);
+  max-width: 500px; /* Slightly wider for long file names */
+  max-height: 90vh; /* Prevent card from exceeding screen height */
+  border-radius: 16px; /* Smoother radius */
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(0, 229, 255, 0.1);
   display: flex;
   flex-direction: column;
   color: white;
-  overflow: hidden;
-  padding: 2rem 1rem;
-  animation: popIn 0.2s ease-out forwards;
+  overflow: hidden; /* Keep overflow hidden on card so rounded corners work */
+  animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; /* Bouncier animation */
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 /* =========================================
@@ -180,149 +192,236 @@
 .senderIconWrapper {
   display: flex;
   justify-content: center;
-  margin-top: 32px;
+  padding-top: 28px;
+  flex-shrink: 0; /* Prevent shrinking when list is full */
 }
 
 .senderIconContainer {
-  width: 100px;
-  height: 100px;
-  background-color: #0d2127;
-  border: 2px solid #00e5ff; /* Neon cyan border */
-  border-radius: 24px;
+  width: 80px; /* Slightly reduced size for better proportions */
+  height: 80px;
+  background: linear-gradient(145deg, #0d2127, #112a32);
+  border: 2px solid #00e5ff;
+  border-radius: 20px;
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 8px 16px rgba(0, 229, 255, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 229, 255, 0.15);
 }
 
 .senderIconContainer img {
-  width: 70px;
+  width: 50px;
   height: auto;
   object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 /* =========================================
    TYPOGRAPHY
    ========================================= */
 .requestTitle {
-  color: #00e5ff; /* Neon cyan text */
+  color: #ffffff;
   text-align: center;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 600;
-  letter-spacing: 0.5px;
-  margin: 24px 0;
+  letter-spacing: 0.3px;
+  margin: 20px 24px 16px 24px; /* Better spacing */
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.requestTitle span {
+  /* If you want to highlight the device name */
+  color: #00e5ff;
 }
 
 /* =========================================
-   FILE LIST
+   FILE LIST (SCROLLABLE)
    ========================================= */
 .fileListContainer {
-  padding: 0 32px;
+  padding: 0 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 32px;
+  gap: 10px;
+  flex: 1; /* Take up available vertical space */
+  min-height: 0; /* CRITICAL: Allows flexbox to shrink and scroll */
+  overflow-y: auto; /* ENABLE SCROLLING */
+  margin-bottom: 24px;
+
+  /* Fade out effect at top and bottom of the list */
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 8px,
+    black calc(100% - 8px),
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 8px,
+    black calc(100% - 8px),
+    transparent
+  );
 }
 
+/* Custom Scrollbar Styling */
+.fileListContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fileListContainer::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fileListContainer::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 229, 255, 0.2);
+  border-radius: 3px;
+}
+
+.fileListContainer::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 229, 255, 0.4);
+}
+
+/* =========================================
+   FILE ITEMS
+   ========================================= */
 .fileItem {
-  background-color: #162b32; /* Slightly lighter inner card */
-  border: 1px solid #1f404a;
-  border-radius: 8px;
+  background-color: #0f2429;
+  border: 1px solid #1a3c42;
+  border-radius: 10px;
   padding: 12px 16px;
   display: flex;
   align-items: center;
   gap: 16px;
+  transition: all 0.2s ease;
 }
 
-/* Dummy File Icons */
+.fileItem:hover {
+  background-color: #162b32;
+  border-color: #2a5a64;
+  transform: translateX(4px); /* Subtle hover interaction */
+}
+
 .fileIcon {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  width: 40px;
-  height: 48px;
+  border-radius: 8px;
+  width: 44px;
+  height: 50px;
   color: white;
-  font-size: 0.5rem;
-  font-weight: bold;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  flex-shrink: 0; /* Prevent icon from squishing */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .fileIcon svg {
-  width: 20px;
-  height: 20px;
-  margin-bottom: 2px;
+  width: 22px;
+  height: 22px;
+  margin-bottom: 4px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2));
 }
 
+/* File Type Colors */
 .videoIcon {
-  background-color: #2196f3;
-} /* Blue for video */
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+}
 .imgIcon {
-  background-color: #03a9f4;
-} /* Light blue for image */
+  background: linear-gradient(135deg, #00bcd4, #0097a7);
+}
+.audioIcon {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+}
+.docIcon {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+}
+.archiveIcon {
+  background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+}
+.fileIconDefault {
+  background: linear-gradient(135deg, #607d8b, #455a64);
+}
 
 .fileDetails {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  overflow: hidden; /* Required for text truncation */
 }
 
 .fileName {
-  color: #ffffff;
+  color: #e0f7fa;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   margin-bottom: 4px;
-  word-break: break-all;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Truncate long filenames nicely with ... */
 }
 
 .fileSize {
-  color: #8c9ea6;
-  font-size: 0.8rem;
+  color: #5f8a94;
+  font-size: 0.78rem;
+  font-weight: 500;
 }
 
 /* =========================================
    BOTTOM ACTIONS (BUTTONS)
    ========================================= */
 .actionArea {
-  background-color: #0a0e14; /* Darker footer */
-  padding: 24px 32px;
+  background-color: #0a1117;
+  padding: 20px 24px;
   display: flex;
-  gap: 16px;
-  border-top: 1px solid #1a3c40;
+  gap: 12px;
+  border-top: 1px solid #1a3c42;
+  flex-shrink: 0; /* Prevent buttons from squishing */
 }
 
 .actionArea button {
   flex: 1;
   padding: 12px 0;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 8px;
   transition: all 0.2s ease;
+  border: none;
+  outline: none;
 }
 
 .rejectBtn {
   background-color: transparent;
   color: #00e5ff;
-  border: 1px solid #00e5ff;
+  border: 1.5px solid rgba(0, 229, 255, 0.4) !important;
 }
 
 .rejectBtn:hover {
-  background-color: rgba(0, 229, 255, 0.1);
+  background-color: rgba(0, 229, 255, 0.08);
+  border-color: #00e5ff !important;
 }
 
 .acceptBtn {
-  background-color: #00e5ff;
-  color: #000000;
-  border: none;
+  background: linear-gradient(135deg, #00e5ff, #00b8d4);
+  color: #001f24;
+  box-shadow: 0 4px 16px rgba(0, 229, 255, 0.25);
 }
 
 .acceptBtn:hover {
-  background-color: #00b3cc;
+  background: linear-gradient(135deg, #00f0ff, #00c8e0);
+  box-shadow: 0 6px 20px rgba(0, 229, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.acceptBtn:active,
+.rejectBtn:active {
+  transform: scale(0.98);
 }
 
 /* =========================================

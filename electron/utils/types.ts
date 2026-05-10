@@ -4,6 +4,7 @@ type constructorOptions = {
   port: number;
   keyString: string;
   certString: string;
+  chunkSize?: number;
 };
 
 type getCallback = (req: IncomingMessage, res: ServerResponse) => void;
@@ -46,7 +47,7 @@ interface ReqOptions {
 interface PeerDownloadRequest {
   isWaiting: boolean;
   cancelled: boolean;
-  fileInfo: fileInfo | null;
+  fileInfo: fileInfo[] | null;
 }
 type ProgressData = {
   totalDownloadedBytes: number;

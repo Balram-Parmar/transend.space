@@ -7,22 +7,97 @@ import winLogo from '../../assets/microsoft.png';
 import defaultLogo from '../../assets/android.png';
 import macLogo from '../../assets/apple.png';
 import loading from '../../assets/loading.gif';
-// import { addToActiveTransfer } from '../../state/activeTransfers';
+import { addActiveTransfer } from '../../utils/activeTransfers';
 
-import { type DeviceInfo, type PeerDownloadRequest } from '../../../electron/utils/types';
-// (alias) type DeviceInfo = {
-// name: string;
-// httpPort: number;
-// address: string;
-// arch?: any;
-// os?: any;
-// lastSeen: number;
-// }
+import {
+  type DeviceInfo,
+  type fileInfo,
+  type PeerDownloadRequest,
+} from '../../../electron/utils/types';
+// Extract the file extension and categorize it
+function getFileType(fileName: string): string {
+  const extension = fileName.split('.').pop()?.toLowerCase() || '';
+  const typeMap: Record<string, string> = {
+    // Video
+    mp4: 'video',
+    mkv: 'video',
+    avi: 'video',
+    mov: 'video',
+    wmv: 'video',
+    flv: 'video',
+    webm: 'video',
+    // Image
+    jpg: 'image',
+    jpeg: 'image',
+    png: 'image',
+    gif: 'image',
+    bmp: 'image',
+    svg: 'image',
+    webp: 'image',
+    // Audio
+    mp3: 'audio',
+    wav: 'audio',
+    flac: 'audio',
+    aac: 'audio',
+    ogg: 'audio',
+    // Document
+    pdf: 'document',
+    doc: 'document',
+    docx: 'document',
+    txt: 'document',
+    xls: 'document',
+    xlsx: 'document',
+    // Archive
+    zip: 'archive',
+    rar: 'archive',
+    '7z': 'archive',
+    tar: 'archive',
+    gz: 'archive',
+  };
+  return typeMap[extension] || 'other';
+}
 
-//"aix" | "android" | "darwin" | "freebsd" | "haiku" | "linux" | "openbsd" | "sunos" | "win32" | "cygwin" | "netbsd"
+// Short label shown on the file icon badge
+function getFileLabel(fileType: string): string {
+  const labelMap: Record<string, string> = {
+    video: 'VIDEO',
+    image: 'JPG',
+    audio: 'AUDIO',
+    document: 'DOC',
+    archive: 'ZIP',
+    other: 'FILE',
+  };
+  return labelMap[fileType] || 'FILE';
+}
+
+// Map file type to the CSS class for icon styling
+function getIconStyleClass(fileType: string): string {
+  const classMap: Record<string, string> = {
+    video: styles.videoIcon,
+    image: styles.imgIcon,
+    audio: styles.audioIcon,
+    document: styles.docIcon,
+    archive: styles.archiveIcon,
+    other: styles.fileIconDefault,
+  };
+  return classMap[fileType] || styles.fileIconDefault;
+}
+
+// Convert bytes → human-readable string
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const k = 1024;
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const size = parseFloat((bytes / Math.pow(k, i)).toFixed(1));
+  return `${size} ${units[i]}`;
+}
+
 function Home() {
   const [devices, setDevices] = useState<DeviceInfo[] | undefined>();
-  const [peerDownloadRequest, setPeerDownloadRequest] = useState<boolean>(false);
+  const [peerDownloadRequestDialog, setPeerDownloadRequestDialog] = useState<
+    fileInfo[] | undefined
+  >();
   const [waitingAcceptOrReject, setWaitingAcceptOrReject] = useState<PeerDownloadRequest>({
     isWaiting: false,
     cancelled: false,
@@ -65,13 +140,21 @@ function Home() {
 
     if (!response.isWaiting && !response.cancelled) {
       displayMessage('Peer Accepted Your Files, Check Transfer Tab To See Details');
-      console.log(`front end response : ${JSON.stringify(response)}`);
-      // addToActiveTransfer(response.fileInfo);
+
+      addActiveTransfer(response.fileInfo as fileInfo[]);
       setWaitingAcceptOrReject({ isWaiting: false, cancelled: false, fileInfo: response.fileInfo });
     } else if (response.cancelled) {
       displayMessage('You Cancelled The File Selection Dialog');
       setWaitingAcceptOrReject({ isWaiting: false, cancelled: true, fileInfo: null });
     }
+  }
+  function handlePeerDownloadAccept() {
+    window.api.acceptRequest(peerDownloadRequestDialog as fileInfo[]);
+    setPeerDownloadRequestDialog(undefined);
+  }
+  function handlePeerDownloadReject() {
+    window.api.rejectRequest(peerDownloadRequestDialog as fileInfo[]);
+    setPeerDownloadRequestDialog(undefined);
   }
 
   function displayMessage(msg: string) {
@@ -93,6 +176,10 @@ function Home() {
         return [...(prevDevices || []), device];
       });
     });
+
+    window.api.handleDownloadRequest((files) => {
+      setPeerDownloadRequestDialog(files);
+    });
   }, []);
   return (
     <div className={styles.mainContent}>
@@ -112,7 +199,8 @@ function Home() {
           </div>
         </div>
       )}
-      {peerDownloadRequest && (
+
+      {peerDownloadRequestDialog && peerDownloadRequestDialog.length > 0 && (
         <div className={styles.popupOverlay}>
           <div className={styles.acceptCard}>
             {/* Sender Logo */}
@@ -127,41 +215,35 @@ function Home() {
 
             {/* File List Container */}
             <div className={styles.fileListContainer}>
-              {/* File Item 1 */}
-              <div className={styles.fileItem}>
-                <div className={`${styles.fileIcon} ${styles.videoIcon}`}>
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2h12c1.1 0 2-.9 2-2V8l-6-6zm-4 12l-4-4h3V6h2v4h3l-4 4z" />
-                  </svg>
-                  <span>VIDEO</span>
-                </div>
-                <div className={styles.fileDetails}>
-                  <span className={styles.fileName}>Kraken.2026.1080p.mp4</span>
-                  <span className={styles.fileSize}>1.5 GB</span>
-                </div>
-              </div>
+              {peerDownloadRequestDialog.map((file, index) => {
+                const fileType = getFileType(file.name);
+                const fileLabel = getFileLabel(fileType);
+                const iconStyleClass = getIconStyleClass(fileType);
+                const formattedSize = formatFileSize(file.size);
 
-              {/* File Item 2 */}
-              <div className={styles.fileItem}>
-                <div className={`${styles.fileIcon} ${styles.imgIcon}`}>
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2h12c1.1 0 2-.9 2-2V8l-6-6zm-4 12l-4-4h3V6h2v4h3l-4 4z" />
-                  </svg>
-                  <span>JPG</span>
-                </div>
-                <div className={styles.fileDetails}>
-                  <span className={styles.fileName}>purple-abstract-3840x2160-21503.jpg</span>
-                  <span className={styles.fileSize}>1.5 MB</span>
-                </div>
-              </div>
+                return (
+                  <div className={styles.fileItem} key={index}>
+                    <div className={`${styles.fileIcon} ${iconStyleClass}`}>
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2h12c1.1 0 2-.9 2-2V8l-6-6zm-4 12l-4-4h3V6h2v4h3l-4 4z" />
+                      </svg>
+                      <span>{fileLabel}</span>
+                    </div>
+                    <div className={styles.fileDetails}>
+                      <span className={styles.fileName}>{file.name}</span>
+                      <span className={styles.fileSize}>{formattedSize}</span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Bottom Actions */}
             <div className={styles.actionArea}>
-              <button className={styles.rejectBtn} onClick={() => setPeerDownloadRequest(false)}>
+              <button className={styles.rejectBtn} onClick={handlePeerDownloadReject}>
                 Reject
               </button>
-              <button className={styles.acceptBtn}>
+              <button className={styles.acceptBtn} onClick={handlePeerDownloadAccept}>
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
                   <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
                 </svg>
@@ -171,6 +253,7 @@ function Home() {
           </div>
         </div>
       )}
+
       <div className={styles.container}>
         <div className={styles.header}>
           {' '}

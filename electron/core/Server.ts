@@ -5,6 +5,7 @@ import fsPromises from 'fs/promises';
 import fs from 'fs';
 import { createReadStream } from 'fs';
 import crypto from 'crypto';
+import { EventEmitter } from 'node:events';
 
 import {
   constructorOptions,
@@ -14,18 +15,35 @@ import {
   ProgressData,
 } from '../utils/types';
 
-class Server {
+// Define a type for the active transfer data
+export interface ActiveTransfer {
+  fileName: string;
+  fileSize: number;
+  sessionBytesDownloaded: number; // Tracks actual bytes pushed by the server
+  activeConnections: number; // Prevents premature deletion on concurrent chunks
+}
+
+class Server extends EventEmitter {
   private port: number;
   private instance: https.Server;
   private getRoutes: Map<string, getCallback>;
-  private postRoutes: Map<string, getCallback>; // 1. Added postRoutes Map
+  private postRoutes: Map<string, getCallback>;
   private idToFilePath: Map<string, fileInfo & { filePath: string }>;
+  private chunkSize: number;
 
-  constructor({ port, keyString, certString }: constructorOptions) {
+  // 1. Added activeTransfers Map
+  private activeTransfers: Map<string, ActiveTransfer>;
+
+  constructor({ port, keyString, certString, chunkSize }: constructorOptions) {
+    super();
     this.port = port;
     this.getRoutes = new Map();
-    this.postRoutes = new Map(); // 2. Initialize postRoutes
+    this.postRoutes = new Map();
     this.idToFilePath = new Map();
+    this.chunkSize = chunkSize ? chunkSize : 65536;
+
+    // 2. Initialize activeTransfers Map
+    this.activeTransfers = new Map();
 
     const option = { key: keyString, cert: certString };
 
@@ -42,7 +60,7 @@ class Server {
         }
 
         const fileData = this.idToFilePath.get(id)!;
-        this.handleFileDownloadRequest(fileData, req, res);
+        this.handleFileDownloadRequest(fileData, req, res, id);
       }
       // Handle GET Routes
       else if (req.method === 'GET') {
@@ -53,7 +71,7 @@ class Server {
           this.sendNotFound(res);
         }
       }
-      // 3. Handle POST Routes
+      // Handle POST Routes
       else if (req.method === 'POST') {
         const cb = this.postRoutes.get(req.url as string);
         if (cb) {
@@ -68,8 +86,7 @@ class Server {
       console.log(`server started at https://localhost:${this.port}`);
     });
   }
-  private checkProgress() {}
-  // Optional Helper for 404s to keep code DRY
+
   private sendNotFound(res: ServerResponse) {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end("sorry but it won't work if you are trying to hack it");
@@ -149,6 +166,7 @@ class Server {
     fileData: fileInfo & { filePath: string },
     req: IncomingMessage,
     res: ServerResponse,
+    id: string,
   ) {
     try {
       const safeFileName = encodeURIComponent(fileData.name);
@@ -156,15 +174,15 @@ class Server {
       const filePath = fileData.filePath;
       const range = req.headers.range;
 
+      let fileStream;
+
       if (range) {
         const parts = range.replace(/bytes=/, '').split('-');
         const start = parseInt(parts[0], 10);
         const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
 
         if (start >= fileSize || end >= fileSize || start > end || isNaN(start)) {
-          res.writeHead(416, {
-            'Content-Range': `bytes */${fileSize}`,
-          });
+          res.writeHead(416, { 'Content-Range': `bytes */${fileSize}` });
           return res.end();
         }
 
@@ -178,8 +196,7 @@ class Server {
           'Content-Disposition': `attachment; filename="${fileData.name}"; filename*=UTF-8''${safeFileName}`,
         });
 
-        const fileStream = createReadStream(filePath, { start, end });
-        fileStream.pipe(res);
+        fileStream = createReadStream(filePath, { highWaterMark: this.chunkSize, start, end });
       } else {
         res.writeHead(200, {
           'Content-Length': fileSize,
@@ -188,14 +205,65 @@ class Server {
           'Content-Disposition': `attachment; filename="${fileData.name}"; filename*=UTF-8''${safeFileName}`,
         });
 
-        const fileStream = createReadStream(filePath);
-        fileStream.pipe(res);
+        fileStream = createReadStream(filePath, { highWaterMark: this.chunkSize });
       }
+
+      // --- NEW TRACKING LOGIC ---
+
+      // 1. Get existing transfer, or create a new one starting at 0
+      let transfer = this.activeTransfers.get(id);
+      if (!transfer) {
+        transfer = {
+          fileName: fileData.name,
+          fileSize: fileSize,
+          sessionBytesDownloaded: 0, // Starts at 0, strictly tracking data moving through the pipe
+          activeConnections: 0,
+        };
+        this.activeTransfers.set(id, transfer);
+      }
+
+      // 2. Increment active connection count (handles Download Managers splitting files)
+      transfer.activeConnections += 1;
+
+      // 3. Pipe the stream
+      fileStream.pipe(res);
+
+      // 4. Update ONLY the actual bytes passing through
+      fileStream.on('data', (chunk) => {
+        // Re-fetch in case it was somehow deleted
+        const currentTransfer = this.activeTransfers.get(id);
+        if (currentTransfer) {
+          currentTransfer.sessionBytesDownloaded += chunk.length;
+          this.emit('progress', id, currentTransfer);
+        }
+      });
+
+      // 5. Safe cleanup
+      res.on('close', () => {
+        const currentTransfer = this.activeTransfers.get(id);
+        if (currentTransfer) {
+          currentTransfer.activeConnections -= 1;
+
+          // Only delete from map if ALL concurrent chunks/connections are done
+          if (currentTransfer.activeConnections <= 0) {
+            this.activeTransfers.delete(id);
+          }
+        }
+      });
     } catch (error: any) {
       console.error('File Server Error:', error);
       if (!res.headersSent) {
         res.writeHead(500, { 'Content-Type': 'text/plain' });
         res.end('500 Internal Server Error');
+      }
+
+      // Emergency cleanup for this connection
+      const currentTransfer = this.activeTransfers.get(id);
+      if (currentTransfer) {
+        currentTransfer.activeConnections -= 1;
+        if (currentTransfer.activeConnections <= 0) {
+          this.activeTransfers.delete(id);
+        }
       }
     }
   }

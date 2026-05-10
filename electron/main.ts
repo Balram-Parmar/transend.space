@@ -1,12 +1,13 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, webContents } from 'electron';
 import path from 'node:path';
 import DiscoveryService from './core/DiscoveryService';
-import Server from './core/Server';
+import Server, { ActiveTransfer } from './core/Server';
 import forge from 'node-forge';
 import getPort from 'get-port';
-import { DeviceInfo, PeerDownloadRequest } from './utils/types';
+import { DeviceInfo, fileInfo, PeerDownloadRequest } from './utils/types';
 import { IncomingMessage } from 'node:http';
-import { json } from 'node:stream/consumers';
+import fs from 'fs/promises';
+import Downloader from './core/Downloader';
 
 process.env.DIST = path.join(__dirname, '../dist');
 process.env.VITE_PUBLIC = app.isPackaged
@@ -18,6 +19,8 @@ let mainWindow: BrowserWindow;
 let winIsReady: Promise<BrowserWindow>;
 let server: Server;
 let service: DiscoveryService;
+let httpPort: number;
+let downloadDirPath: string;
 /*
 -----------------------------------------------------Manage App-----------------------------------------------
 */
@@ -25,6 +28,7 @@ let service: DiscoveryService;
 app.whenReady().then(() => {
   // 2. Call our setup function once Electron is fully initialized
   winIsReady = createAndSetupWindow();
+  downloadDirPath = app.getPath('downloads');
 });
 
 app.on('window-all-closed', () => {
@@ -45,14 +49,69 @@ app.on('activate', () => {
 
 // Get any random free port
 (async () => {
-  const httpPort = await getPort();
+  httpPort = await getPort();
   const ssl = generateLocalSSLCert();
   console.log('success fully generated ssl certificate');
-  server = new Server({ port: httpPort, keyString: ssl.key, certString: ssl.cert });
+  server = new Server({
+    port: httpPort,
+    keyString: ssl.key,
+    certString: ssl.cert,
+    chunkSize: 1024 * 1024,
+  });
+
+  const downloader = new Downloader(server);
   service = new DiscoveryService({ httpPort });
+
+  //Handle Peer Download File Request
+  server.post('/downloadRequest', (req, res) => {
+    let data: Buffer[] = [];
+    req.on('data', (chunk) => {
+      data.push(chunk);
+    });
+    req.on('end', () => {
+      const body: fileInfo[] = JSON.parse(Buffer.concat(data).toString()).files;
+
+      winIsReady.then(() => {
+        console.log(`received download Request for files ${JSON.stringify(body)}`);
+        mainWindow.webContents.send('peer:request', body);
+        ipcMain.once('peer:res', (_event, fileInfo: fileInfo[], accepted) => {
+          if (!accepted) {
+            console.log('user rejected your request');
+            res.writeHead(200, { 'content-type': 'application/json' });
+            res.write({ isWaiting: false, cancalled: false, rejected: true });
+          }
+
+          res.end();
+          console.log('accpeted' + JSON.stringify(fileInfo));
+          const downloader = new Downloader(server);
+          mainWindow.webContents.send('addActiveTransfer', fileInfo);
+          const downloads = fileInfo.map((file) => {
+            return downloader.downloadFile(file, downloadDirPath);
+          });
+          downloader.on('progress:download', (id, activeTransfer: ActiveTransfer, type) => {
+            console.log(`sending to front end ${id} : ${activeTransfer.sessionBytesDownloaded}`);
+            mainWindow.webContents.send(
+              'progress:download',
+              id,
+              activeTransfer.sessionBytesDownloaded,
+            );
+          });
+          Promise.all(downloads).then(() => {
+            console.log('all downloads Completed');
+          });
+        });
+      });
+    });
+  });
+
   service.on('device:found', async (device: DeviceInfo) => {
     (await winIsReady).webContents.send('device:found', device);
-    console.log('device found in (main.ts)' + JSON.stringify(device));
+    console.log('device found in (main.ts)' + JSON.stringify(device) + '\n\n');
+  });
+  server.on('progress', (id, totalDownloaded: ActiveTransfer) => {
+    winIsReady.then(() => {
+      mainWindow.webContents.send('progress', id, totalDownloaded.sessionBytesDownloaded);
+    });
   });
 })();
 
@@ -63,18 +122,23 @@ app.on('activate', () => {
 ipcMain.handle('select-file', async (event, device: DeviceInfo): Promise<PeerDownloadRequest> => {
   const filePath = await dialog.showOpenDialog(await winIsReady, {
     title: 'i am test title',
-    properties: ['openFile'],
+    properties: ['openFile', 'multiSelections'], // Added 'multiSelections'
   });
-
-  console.log('file path in main ' + filePath.filePaths);
 
   // 1. Return the new interface structure if the user cancels the dialog or selects nothing
   if (filePath.canceled || !filePath.filePaths.length) {
     return { isWaiting: false, cancelled: true, fileInfo: null };
   }
 
-  const data = await server.getFileInfo(filePath.filePaths[0]);
+  const data = filePath.filePaths.map((filePath) => server.getFileInfo(filePath));
+  let files = await Promise.all(data);
+  console.log(files);
 
+  files.forEach((file) => {
+    console.log(
+      `download link for ${file.name} https://192.168.1.9:${httpPort}${file.downloadLink}\n`,
+    );
+  });
   // 2. Type the Promise with your new interface
   const finalResponse = await new Promise<PeerDownloadRequest>((resolve, reject) => {
     let response: Buffer[] = [];
@@ -87,8 +151,8 @@ ipcMain.handle('select-file', async (event, device: DeviceInfo): Promise<PeerDow
       res.on('end', () => {
         try {
           const res = JSON.parse(Buffer.concat(response).toString());
-          console.log(res);
-          resolve({ ...res, fileInfo: data });
+
+          resolve({ ...res, fileInfo: files });
         } catch (e) {
           console.error('Failed to parse JSON from peer:', e);
           // If the peer sends invalid data, safely default to a cancelled/failed state
@@ -107,7 +171,7 @@ ipcMain.handle('select-file', async (event, device: DeviceInfo): Promise<PeerDow
       res: (res) => {
         responseHandler(res);
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(files),
     });
   });
 
