@@ -23,7 +23,8 @@ class DiscoveryService extends EventEmitter {
     this.instance = dgram.createSocket({ type: 'udp4' });
 
     this.instance.on('error', (err) => {
-      console.error(`this.instance error:\n${err.stack}`);
+      console.error(`Discovery Service  error:\n${err.stack}`);
+      this.emit('error');
       this.instance.close();
     });
 
@@ -55,9 +56,7 @@ class DiscoveryService extends EventEmitter {
       }, 1000);
       this.emit('started');
     });
-
     this.instance.bind({ port: this.discoveryPort });
-
     this.handleOfflineDevice();
   }
 
