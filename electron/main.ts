@@ -56,7 +56,7 @@ app.on('activate', () => {
     port: httpPort,
     keyString: ssl.key,
     certString: ssl.cert,
-    chunkSize: 1024 * 1024,
+    chunkSize: 1024,
   });
 
   const downloader = new Downloader(server);
@@ -84,12 +84,13 @@ app.on('activate', () => {
           res.end();
           console.log('accpeted' + JSON.stringify(fileInfo));
           const downloader = new Downloader(server);
+          //sending to transfer.ts
           mainWindow.webContents.send('addActiveTransfer', fileInfo);
           const downloads = fileInfo.map((file) => {
             return downloader.downloadFile(file, downloadDirPath);
           });
+
           downloader.on('progress:download', (id, activeTransfer: ActiveTransfer, type) => {
-            console.log(`sending to front end ${id} : ${activeTransfer.sessionBytesDownloaded}`);
             mainWindow.webContents.send(
               'progress:download',
               id,

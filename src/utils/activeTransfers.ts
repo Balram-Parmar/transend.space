@@ -34,10 +34,10 @@ function updateProgress(id: string, totalDownloaded: number) {
       file.downloadLink.slice(10) === id ||
       (file.downloadLink && file.downloadLink.includes(id.trim())),
   );
-  console.log('updateProgress called for ' + id);
+
   if (index !== -1) {
     const file = activeTransfers[index];
-    console.log('updateProgress called for 2 ' + id);
+    console.log('updateProgress called for  ' + id);
     // 2. Update the progress
     file.totalDownloaded = totalDownloaded;
 
@@ -51,6 +51,7 @@ function updateProgress(id: string, totalDownloaded: number) {
   } else {
     console.log(`No file found with the id ${id}`);
   }
+  console.log(`updated active transfer list to : ${JSON.stringify(activeTransfers)}`);
 }
 
 function getActiveTransfers() {
@@ -63,6 +64,9 @@ let isListenerAttached = false;
 function initTransferListener() {
   if (!isListenerAttached && typeof window !== 'undefined' && window.api) {
     window.api.progress((id: string, totalDownloaded: number) => {
+      updateProgress(id, totalDownloaded);
+    });
+    window.api.downloadProgress((id: string, totalDownloaded: number) => {
       updateProgress(id, totalDownloaded);
     });
     isListenerAttached = true;
