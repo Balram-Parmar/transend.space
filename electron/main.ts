@@ -102,10 +102,9 @@ winIsReady.then(() => {
       properties: ['openFile', 'multiSelections'],
     });
 
-    if (filePath.canceled || !filePath.filePaths.length) {
-      return { isWaiting: false, cancelled: true, fileInfo: null };
+    if (filePath.canceled) {
+      mainWindow.webContents.send('file-dialog-canceled');
     }
-
     const data = filePath.filePaths.map((filePath) => httpServer.getFileInfo(filePath));
     let files = await Promise.all(data);
     console.log(files);
@@ -128,11 +127,11 @@ winIsReady.then(() => {
           try {
             const res = JSON.parse(Buffer.concat(response).toString());
 
-            resolve({ ...res, fileInfo: files });
+            resolve({ isAccepted: true, show: false, fileInfo: files });
           } catch (e) {
             console.error('Failed to parse JSON from peer:', e);
             // If the peer sends invalid data, safely default to a cancelled/failed state
-            resolve({ isWaiting: false, cancelled: true, fileInfo: null });
+            resolve({ isAccepted: false, show: false, fileInfo: files });
           }
         });
 

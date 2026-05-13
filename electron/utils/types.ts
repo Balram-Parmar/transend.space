@@ -45,8 +45,8 @@ interface ReqOptions {
   body?: string | Buffer;
 }
 interface PeerDownloadRequest {
-  isWaiting: boolean;
-  cancelled: boolean;
+  isAccepted: boolean;
+  show: boolean;
   fileInfo: fileInfo[] | null;
 }
 type ProgressData = {

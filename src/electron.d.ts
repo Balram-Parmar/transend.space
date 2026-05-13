@@ -12,6 +12,7 @@ export interface api {
   handleDownloadRequest: (cb: (file: fileInfo[]) => void) => void;
   acceptRequest: (fileInfo: fileInfo[]) => void;
   rejectRequest: (fileInfo: fileInfo[]) => void;
+  fileDialogCanceled: (cb: () => void) => void;
 }
 declare global {
   interface Window {
