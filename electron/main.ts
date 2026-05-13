@@ -46,8 +46,9 @@ winIsReady.then(() => {
 -----------------------------------------------------Http Server-----------------------------------------------
 */
   httpServer.post('/downloadRequest', (req, res) => {
-    let data: Buffer[] = [];
+    let data: any = [];
     req.on('data', (chunk) => {
+      console.log(chunk);
       data.push(chunk);
     });
     req.on('end', () => {
@@ -57,9 +58,12 @@ winIsReady.then(() => {
         if (!accepted) {
           console.log('user rejected your request');
           res.writeHead(200, { 'content-type': 'application/json' });
-          res.write({ isWaiting: false, cancalled: false, rejected: true });
+          res.write(JSON.stringify({ isAccepted: false, show: false, files: body }));
+          return;
         } else {
-          res.write({ isWaiting: false, cancalled: false, rejected: false });
+          console.log('user accepted your request');
+          res.writeHead(200, { 'content-type': 'application/json' });
+          res.write(JSON.stringify({ isAccepted: true, show: false, files: body }));
         }
         res.end();
 
@@ -111,7 +115,7 @@ winIsReady.then(() => {
 
     files.forEach((file) => {
       console.log(
-        `download link for ${file.name} https://192.168.1.9:${httpServerPort}${file.downloadLink}\n`,
+        `download link for ${file.name} https://10.2.209.222:${httpServerPort}${file.downloadLink}\n`,
       );
     });
 
@@ -125,9 +129,12 @@ winIsReady.then(() => {
 
         res.on('end', () => {
           try {
-            const res = JSON.parse(Buffer.concat(response).toString());
-
-            resolve({ isAccepted: true, show: false, fileInfo: files });
+            const res: PeerDownloadRequest = JSON.parse(Buffer.concat(response).toString());
+            if (res.isAccepted) {
+              resolve({ isAccepted: true, show: false, fileInfo: files });
+            } else if (!res.isAccepted) {
+              resolve({ isAccepted: false, show: false, fileInfo: files });
+            }
           } catch (e) {
             console.error('Failed to parse JSON from peer:', e);
             // If the peer sends invalid data, safely default to a cancelled/failed state
@@ -146,7 +153,7 @@ winIsReady.then(() => {
         res: (res) => {
           responseHandler(res);
         },
-        body: JSON.stringify(files),
+        body: JSON.stringify({ files: files }),
       });
     });
 

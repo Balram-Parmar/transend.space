@@ -139,10 +139,6 @@ function Home() {
     });
 
     const response = await window.api.sendDownloadRequest(device);
-    window.api.fileDialogCanceled(() => {
-      displayMessage('You Cancelled The File Selection Dialog');
-      setWaitingAcceptOrReject({ show: false, isAccepted: false, fileInfo: null });
-    });
 
     if (response.isAccepted) {
       displayMessage('Peer Accepted Your Files, Check Transfer Tab To See Details');
@@ -174,6 +170,10 @@ function Home() {
   }
 
   useEffect(() => {
+    window.api.fileDialogCanceled(() => {
+      displayMessage('You Cancelled The File Selection Dialog');
+      setWaitingAcceptOrReject({ show: false, isAccepted: false, fileInfo: null });
+    });
     handleRefresh();
     // We attach the listener once when the component mounts
     window.api.handleDeviceFound((device: DeviceInfo) => {

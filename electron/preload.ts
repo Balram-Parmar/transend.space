@@ -43,7 +43,7 @@ contextBridge.exposeInMainWorld('api', {
     });
   },
   fileDialogCanceled: (cb: () => void) => {
-    ipcRenderer.once('file-dialog-canceled', () => {
+    ipcRenderer.on('file-dialog-canceled', () => {
       cb();
     });
   },
