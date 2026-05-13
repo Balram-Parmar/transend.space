@@ -32,14 +32,14 @@ contextBridge.exposeInMainWorld('api', {
       cb(fileInfo);
     });
   },
-  progress: (cb: (id: string, totalDownloaded: number) => void) => {
-    ipcRenderer.on('progress', (_event, id, totalDownloaded) => {
-      cb(id, totalDownloaded);
+  progress: (cb: (id: string, totalDownloaded: number, type: string) => void) => {
+    ipcRenderer.on('progress:upload', (_event, id, totalDownloaded, type) => {
+      cb(id, totalDownloaded, type);
     });
   },
-  downloadProgress: (cb: (id: string, totalDownloaded: number) => void) => {
-    ipcRenderer.on('progress:download', (_event, id, toalDownloaded) => {
-      cb(id, toalDownloaded);
+  downloadProgress: (cb: (id: string, totalDownloaded: number, type: string) => void) => {
+    ipcRenderer.on('progress:download', (_event, id, toalDownloaded, type) => {
+      cb(id, toalDownloaded, type);
     });
   },
   fileDialogCanceled: (cb: () => void) => {

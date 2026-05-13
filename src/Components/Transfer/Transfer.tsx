@@ -61,7 +61,7 @@ function Transfer() {
 
                     <div className={styles.fileMeta}>
                       <h1>{file.name}</h1>
-                      <span>UPLOADING</span>
+                      <span>{file.type}</span>
                     </div>
                   </div>
 

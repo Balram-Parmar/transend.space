@@ -73,11 +73,12 @@ winIsReady.then(() => {
           return fileDownloader.downloadFile(file, downloadDirPath);
         });
 
-        fileDownloader.on('progress:download', (id, activeTransfer: ActiveTransfer, type) => {
+        fileDownloader.on('progress:download', (id, activeTransfer: ActiveTransfer) => {
           mainWindow.webContents.send(
             'progress:download',
             id,
             activeTransfer.sessionBytesDownloaded,
+            'DOWNLOADING',
           );
         });
         Promise.all(downloads).then(() => {
@@ -87,7 +88,12 @@ winIsReady.then(() => {
     });
   });
   httpServer.on('progress', (id, totalDownloaded: ActiveTransfer) => {
-    mainWindow.webContents.send('progress', id, totalDownloaded.sessionBytesDownloaded);
+    mainWindow.webContents.send(
+      'progress:upload',
+      id,
+      totalDownloaded.sessionBytesDownloaded,
+      'UPLOADING',
+    );
   });
   /*
 -----------------------------------------------------Discovery Service-----------------------------------------------
