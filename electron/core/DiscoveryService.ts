@@ -23,7 +23,8 @@ class DiscoveryService extends EventEmitter {
     this.instance = dgram.createSocket({ type: 'udp4' });
 
     this.instance.on('error', (err) => {
-      console.error(`this.instance error:\n${err.stack}`);
+      console.error(`Discovery Service  error:\n${err.stack}`);
+      this.emit('error');
       this.instance.close();
     });
 
@@ -55,9 +56,7 @@ class DiscoveryService extends EventEmitter {
       }, 1000);
       this.emit('started');
     });
-
     this.instance.bind({ port: this.discoveryPort });
-
     this.handleOfflineDevice();
   }
 
@@ -141,11 +140,14 @@ class DiscoveryService extends EventEmitter {
   public getAllDevices() {
     return Array.from(this.Devices.values());
   }
-
+  public getDeviceInfo(ipAddress: string): DeviceInfo | undefined {
+    if (this.Devices.has(ipAddress)) return this.Devices.get(ipAddress);
+    else return undefined;
+  }
   private handleOfflineDevice() {
     setInterval(() => {
       for (const device of this.Devices.entries()) {
-        if (Date.now() - device[1].lastSeen > 1000000000) {
+        if (Date.now() - device[1].lastSeen > 5000) {
           this.emit('device:lost', device[1]);
           console.log(`lost Device : ${JSON.stringify(device[1])}`);
           this.Devices.delete(device[1].address);

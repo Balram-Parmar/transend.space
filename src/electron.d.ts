@@ -6,12 +6,13 @@ export interface api {
   handleDeviceFound: (callback: (device: any) => void) => void;
   sendDownloadRequest: (device: DeviceInfo) => Promise<PeerDownloadRequest>;
   getAllDevices: () => DeviceInfo[];
-  progress: (cb: (id: string, totalDownloaded: number) => void) => void;
-  downloadProgress: (cb: (id: string, totalDownloaded: number) => void) => void;
+  progress: (cb: (id: string, totalDownloaded: number, type: string) => void) => void;
+  downloadProgress: (cb: (id: string, totalDownloaded: number, type: string) => void) => void;
   addActiveTransfer: (cb: (fileInfo: fileInfo[]) => void) => void;
   handleDownloadRequest: (cb: (file: fileInfo[]) => void) => void;
   acceptRequest: (fileInfo: fileInfo[]) => void;
   rejectRequest: (fileInfo: fileInfo[]) => void;
+  fileDialogCanceled: (cb: () => void) => void;
 }
 declare global {
   interface Window {

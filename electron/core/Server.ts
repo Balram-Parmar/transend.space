@@ -84,6 +84,12 @@ class Server extends EventEmitter {
 
     this.instance.listen(this.port, '0.0.0.0', () => {
       console.log(`server started at https://localhost:${this.port}`);
+      this.emit('started');
+    });
+
+    this.instance.on('error', (err) => {
+      console.log(`error occured In server ${err}`);
+      this.emit('error');
     });
   }
 

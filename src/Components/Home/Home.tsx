@@ -98,11 +98,9 @@ function Home() {
   const [peerDownloadRequestDialog, setPeerDownloadRequestDialog] = useState<
     fileInfo[] | undefined
   >();
-  const [waitingAcceptOrReject, setWaitingAcceptOrReject] = useState<PeerDownloadRequest>({
-    isWaiting: false,
-    cancelled: false,
-    fileInfo: null,
-  });
+  const [waitingAcceptOrReject, setWaitingAcceptOrReject] = useState<
+    PeerDownloadRequest | undefined
+  >(undefined);
   const [message, setMessage] = useState<string>('');
 
   function getDeviceInfo(device: DeviceInfo): {
@@ -134,18 +132,21 @@ function Home() {
     return { deviceName: deviceName, logoPath: logoPath, arch: device.arch };
   }
   async function handleDeviceClick(device: DeviceInfo) {
-    setWaitingAcceptOrReject({ isWaiting: true, cancelled: false, fileInfo: null });
+    setWaitingAcceptOrReject({
+      isAccepted: false,
+      show: true,
+      fileInfo: null,
+    });
 
     const response = await window.api.sendDownloadRequest(device);
 
-    if (!response.isWaiting && !response.cancelled) {
+    if (response.isAccepted) {
       displayMessage('Peer Accepted Your Files, Check Transfer Tab To See Details');
 
       addActiveTransfer(response.fileInfo as fileInfo[]);
-      setWaitingAcceptOrReject({ isWaiting: false, cancelled: false, fileInfo: response.fileInfo });
-    } else if (response.cancelled) {
-      displayMessage('You Cancelled The File Selection Dialog');
-      setWaitingAcceptOrReject({ isWaiting: false, cancelled: true, fileInfo: null });
+      setWaitingAcceptOrReject(undefined);
+    } else {
+      console.log(`your request is rejected by peer`);
     }
   }
   function handlePeerDownloadAccept() {
@@ -169,6 +170,10 @@ function Home() {
   }
 
   useEffect(() => {
+    window.api.fileDialogCanceled(() => {
+      displayMessage('You Cancelled The File Selection Dialog');
+      setWaitingAcceptOrReject({ show: false, isAccepted: false, fileInfo: null });
+    });
     handleRefresh();
     // We attach the listener once when the component mounts
     window.api.handleDeviceFound((device: DeviceInfo) => {
@@ -183,7 +188,7 @@ function Home() {
   }, []);
   return (
     <div className={styles.mainContent}>
-      {waitingAcceptOrReject.isWaiting && (
+      {waitingAcceptOrReject?.show && (
         <div className={styles.popupOverlay}>
           <div className={styles.acceptCard}>
             <div className={styles.cardLogo}>
