@@ -52,7 +52,19 @@ winIsReady.then(() => {
       data.push(chunk);
     });
     req.on('end', () => {
-      const body: fileInfo[] = JSON.parse(Buffer.concat(data).toString()).files;
+      let body: fileInfo[] = JSON.parse(Buffer.concat(data).toString()).files;
+
+      body = body.map((file) => {
+        let host = req.socket.remoteAddress; // Gives 192.168.1.7 (Correct!)
+        const port = peerDiscoveryService.getDeviceInfo(host as string)?.httpPort;
+        // Construct the base URL
+        const baseUrl = `https://${host}:${port}`;
+        return {
+          ...file,
+          downloadLink: `${baseUrl}${file.downloadLink}`,
+        };
+      });
+      console.log('body received (MODIFIED ) ' + JSON.stringify(body));
       mainWindow.webContents.send('peer:request', body);
       ipcMain.once('peer:res', (_event, fileInfo: fileInfo[], accepted) => {
         if (!accepted) {
