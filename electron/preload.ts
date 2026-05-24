@@ -34,6 +34,7 @@ contextBridge.exposeInMainWorld('api', {
   },
   progress: (cb: (id: string, totalDownloaded: number, type: string) => void) => {
     ipcRenderer.on('progress:upload', (_event, id, totalDownloaded, type) => {
+      console.log('upload progress received in renderor' + id + ' ' + totalDownloaded);
       cb(id, totalDownloaded, type);
     });
   },

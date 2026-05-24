@@ -46,15 +46,13 @@ class Downloader extends EventEmitter {
   }
 
   async downloadFile(info: fileInfo, savePath: string): Promise<void> {
-    const CONCURRENCY = 16;
+    const CONCURRENCY = 2;
 
-    const CHUNK_SIZE = 1024 * 1024;
+    const CHUNK_SIZE = (1024 * 1024) / 2;
 
     const fullPath = path.join(savePath, info.name);
 
     const parsedUrl = new URL(info.downloadLink);
-
-    // parsedUrl.pathname will be "/download/4f20e08f1da0c0b8f0abe2c30d018601"
 
     const trackingKey = parsedUrl.pathname.replace('/download/', '');
 

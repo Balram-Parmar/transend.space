@@ -99,6 +99,7 @@ winIsReady.then(() => {
       });
     });
   });
+
   httpServer.on('progress', (id, totalDownloaded: ActiveTransfer) => {
     mainWindow.webContents.send(
       'progress:upload',

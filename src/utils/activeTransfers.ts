@@ -29,12 +29,13 @@ function addActiveTransfer(fileInfo: fileInfo[]) {
 }
 
 function updateProgress(id: string, totalDownloaded: number, type: string) {
-  // 1. Find the index instead of the item directly
-  const index = activeTransfers.findIndex(
-    (file) =>
+  const index = activeTransfers.findIndex((file) => {
+    console.log('download link in activeTransfer' + file.downloadLink);
+    return (
       file.downloadLink.slice(10) === id ||
-      (file.downloadLink && file.downloadLink.includes(id.trim())),
-  );
+      (file.downloadLink && file.downloadLink.includes(id.trim()))
+    );
+  });
 
   if (index !== -1) {
     const file = activeTransfers[index];
@@ -60,7 +61,6 @@ function getActiveTransfers() {
   return activeTransfers;
 }
 
-// --- NEW CODE: Singleton IPC Listener ---
 let isListenerAttached = false;
 
 function initTransferListener() {
@@ -81,10 +81,4 @@ window.api.addActiveTransfer((fileInfo) => {
 window.api.downloadProgress((id, totalDownloaded, type) => {
   updateProgress(id, totalDownloaded, type);
 });
-export {
-  addActiveTransfer,
-  subscribe,
-  getActiveTransfers,
-  updateProgress,
-  initTransferListener, // Export the new function
-};
+export { addActiveTransfer, subscribe, getActiveTransfers, updateProgress, initTransferListener };
