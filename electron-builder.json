@@ -2,6 +2,7 @@
   "appId": "space.transends",
   "productName": "TranSends",
   "copyright": "Copyright © 2026 TranSends.space",
+  "icon": "build/icon",
   "directories": {
     "output": "release/${version}"
   },

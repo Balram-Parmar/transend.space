@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#122230" />
+      <stop offset="1" stop-color="#060b0f" />
+    </linearGradient>
+    <linearGradient id="warm" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff5f9e" />
+      <stop offset="1" stop-color="#8b5cff" />
+    </linearGradient>
+    <linearGradient id="cool" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4fa8ff" />
+      <stop offset="1" stop-color="#00e5ff" />
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#bg)" />
+  <rect x="16.5" y="16.5" width="479" height="479" rx="107.5" fill="none" stroke="#00e5ff" stroke-opacity="0.22" />
+  <g fill="none" stroke-width="40" stroke-linecap="round">
+    <path d="M 143 215 A 120 120 0 0 1 369 215" stroke="url(#warm)" />
+    <path d="M 369 297 A 120 120 0 0 1 143 297" stroke="url(#cool)" />
+  </g>
+  <g transform="translate(369 215) rotate(70)" fill="none" stroke="url(#warm)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M -26 -26 L 8 0 L -26 26" />
+  </g>
+  <g transform="translate(143 297) rotate(250)" fill="none" stroke="url(#cool)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M -26 -26 L 8 0 L -26 26" />
+  </g>
+</svg>

@@ -1,13 +1,13 @@
 <p align="center">
-  <img src="src/assets/TranSends_Logo.png" alt="TranSends" width="220" />
+  <img src="build/icon.png" alt="TranSends" width="180" />
 </p>
 
 <p align="center"><strong>Local file sharing across all your devices — fast, offline, and free.</strong></p>
 
 <p align="center">
   <a href="https://transends.space">Website</a> ·
-  <a href="https://github.com/Balram-Parmar/transend.ts">Source</a> ·
-  <a href="https://github.com/Balram-Parmar/transend.ts/issues">Issues</a>
+  <a href="https://github.com/Balram-Parmar/transend.space">Source</a> ·
+  <a href="https://github.com/Balram-Parmar/transend.space/issues">Issues</a>
 </p>
 
 ---
@@ -122,8 +122,8 @@ transend.ts/
 **Prerequisites:** Node.js (with npm) and a LAN/Wi-Fi network shared by at least two machines.
 
 ```bash
-git clone https://github.com/Balram-Parmar/transend.ts.git
-cd transend.ts
+git clone https://github.com/Balram-Parmar/transend.space.git
+cd transend.space
 npm install
 npm run dev          # launches the Electron app in development mode
 ```
