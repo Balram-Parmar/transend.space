@@ -169,7 +169,6 @@ Artifacts are written to `release/<version>/`. The NSIS installer is per-machine
 - **Isolated renderer.** `contextIsolation: true` and `nodeIntegration: false`; the renderer only reaches Node features through the narrow `window.api` bridge.
 - **Browser shortcuts disabled** — `Ctrl+R`, `Ctrl+Shift+I`, `F5`, and `Ctrl+T` are blocked to keep the app behaving like a native program.
 - **Scoped routing** — unknown endpoints return 404 and invalid file IDs return 404; invalid byte ranges return `416`.
-- See [`SECURITY.md`](SECURITY.md) for the vulnerability-reporting policy.
 
 ## Known Limitations
 
